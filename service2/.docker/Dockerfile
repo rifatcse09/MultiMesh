@@ -69,10 +69,10 @@ RUN apk update && apk upgrade
 
 RUN pecl install imagick && docker-php-ext-enable imagick
 
-# RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS imagemagick-dev \
-#     && pecl install imagick \
-#     && docker-php-ext-enable imagick \
-#     && apk del .build-deps
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS imagemagick-dev \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && apk del .build-deps
 
 
 # Configure and enable OPCache extension
@@ -81,25 +81,19 @@ RUN docker-php-ext-install opcache
 # Add Composer lastest version
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer
 
-COPY ./.docker/opcache.ini $PHP_INI_DIR/conf.d/
-COPY ./.docker/php.ini $PHP_INI_DIR/conf.d/
+COPY .docker/opcache.ini $PHP_INI_DIR/conf.d/
+COPY .docker/php.ini $PHP_INI_DIR/conf.d/
 
 # Copy configuration files
 RUN cd $APP_DIR
 RUN chown www-data:www-data $APP_DIR
-#COPY --chown=www-data:www-data . .
+
 RUN mkdir -p /var/www/app/bootstrap/cache
 RUN chmod -R 775 /var/www/app/bootstrap/cache
 
-COPY ./.docker/init.sh /usr/bin/startx.sh
+COPY .docker/init.sh /usr/bin/startx.sh
 RUN chmod +x /usr/bin/startx.sh
 
-RUN mkdir -p storage/logs
-RUN touch storage/logs/worker.log
-
-RUN chmod -R 755 storage/logs
 RUN chown -R www-data:www-data /var/www/app
-RUN chown -R www-data:www-data /var/www/app/storage
-
 
 ENTRYPOINT ["/usr/bin/startx.sh"]
