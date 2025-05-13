@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../../../var/www/uAccount"
+		},
+		{
+			"path": "../../../../../../var/www/wibazaar-portal"
+		},
+		{
+			"path": "../../../../../../var/www/wipay"
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"editor.fontSize": 18
+	}
+}

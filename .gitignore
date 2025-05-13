@@ -1,0 +1,7 @@
+docker-compose.yml
+.data
+.idea
+.DS_Store
+storage
+.env
+kafka-data
