@@ -1,15 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\V1\Kafka\KafkaController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
 
 Route::prefix('v1')->group(function () {
-    Route::get('/health-check', function () {
-        return response()->json(['message' => 'Service is running']);
-    });
+    // Route::get('/health-check', function () {
+    //     return response()->json(['message' => 'Service is running']);
+    // });
+
+    Route::get('/kafka/publish', [KafkaController::class, 'publishMessage']);
+    // Route::get('/kafka/publish', function() {
+    //     dd('publish');
+    // });
 });
 
 // Correct route group declaration

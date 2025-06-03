@@ -64,6 +64,7 @@ class Handler extends ExceptionHandler
             // Handle API-specific errors
             return $this->apiException($exception);
         }
+        dd('2',$exception);
 
         return parent::render($request, $exception);
     }

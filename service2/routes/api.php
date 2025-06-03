@@ -1,15 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\V1\Kafka\KafkaController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
 
 Route::prefix('v1')->group(function () {
-    Route::get('/health-check', function () {
-        return response()->json(['message' => 'Serivice 2']);
-    });
+    // Route::get('/health-check', function () {
+    //     return response()->json(['message' => 'Serivice 2']);
+    // });
+    Route::get('/kafka/consume', [KafkaController::class, 'consumeMessages']);
+   // Route::get('/kafka/consume', 'V1\Restaurant\Kafka\KafkaController@consumeMessages')->name('kafka.consume');
 });
 
 // Correct route group declaration
