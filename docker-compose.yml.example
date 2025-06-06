@@ -14,9 +14,11 @@ services:
       - service2
       - service1-nginx
       - service2-nginx
+      - node-service
     networks:
       - app-network
   
+  # Service 1
   service1:
     build:
       context: ./service1
@@ -33,6 +35,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+  
+  # Service 2
   service2:
     build:
       context: ./service2
@@ -49,6 +53,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+  
+  # Nginx for Service 1
   service1-nginx:
     image: nginx:alpine
     container_name: service1-nginx
@@ -64,6 +70,7 @@ services:
     environment:
       X_SERVER_TYPE: app
 
+  # Nginx for Service 2
   service2-nginx:
     image: nginx:alpine
     container_name: service2-nginx
@@ -80,6 +87,27 @@ services:
       - app-network
     environment:
       X_SERVER_TYPE: app
+  
+  # Node.js Service
+  node-service:
+    build:
+      context: ./node-service
+    container_name: node-service
+    volumes:
+      - ./node-service:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    environment:
+      APP_ENV: local
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+    entrypoint: ["sh", "-c", "sleep 15 && node index.js"]
 
   # Kafka (No ZooKeeper using KRaft mode)
   kafka:
@@ -99,6 +127,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_LOG_DIRS: "/tmp/kraft-logs"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      # KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      # KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'true'
     volumes:
       - ./kafka-data:/tmp/kraft-logs
       - ./.docker/scripts/docker-entrypoint-init.sh:/docker-entrypoint-init.d/init.sh
@@ -110,14 +142,34 @@ services:
       timeout: 10s
       retries: 6
       start_period: 60s
+  
+  # Kafka CLI for management
+  kafka-cli:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: kafka-cli
+    depends_on:
+      - kafka
+    networks:
+      - app-network
+    entrypoint: ["sleep", "infinity"] # idle container so you can exec in
+
+  # Kafdrop for Kafka monitoring
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKER_CONNECT: kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - app-network
 
 volumes:
-  kafka-data: # Ensure this volume is properly defined
+  kafka-data: # Kafka data volume
     driver: local
-  pgdata:
-  redis:
-    driver: local
+  pgdata: # PostgreSQL data volume
 
 networks:
-  app-network:
+  app-network: # Application network
     driver: bridge
